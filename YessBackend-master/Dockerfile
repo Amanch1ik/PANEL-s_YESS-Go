@@ -1,5 +1,5 @@
-# Используем официальный образ .NET 8 SDK для сборки
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Используем официальный образ .NET 10 SDK для сборки
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Копируем файлы проекта
@@ -22,7 +22,7 @@ RUN dotnet build "YessBackend.Api.csproj" -c Release -o /app/build
 RUN dotnet publish "YessBackend.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Используем runtime образ для production
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # Устанавливаем необходимые пакеты для работы с PostgreSQL
