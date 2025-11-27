@@ -44,7 +44,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8000
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=yess_db;Username=yess_user;Password=secure_password
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=yess_db;User Id=yess_user;Password=secure_password
       - Redis__ConnectionString=redis:6379
       - Jwt__SecretKey=GENERATE_LONG_RANDOM_SECRET_KEY_HERE_MINIMUM_32_CHARS
       - Jwt__Issuer=yess-loyalty
