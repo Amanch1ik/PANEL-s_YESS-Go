@@ -40,6 +40,11 @@ jobs:
       
       - name: Build
         working-directory: admin-panel
+        env:
+          VITE_API_URL: http://localhost:8000
+          VITE_ENV: production
+          VITE_WS_ENABLED: false
+          VITE_TRANSIT_ENABLED: true
         run: npm run build
 
   frontend-partner-tests:
@@ -75,6 +80,11 @@ jobs:
       
       - name: Build
         working-directory: partner-panel
+        env:
+          VITE_API_URL: http://localhost:8000
+          VITE_ENV: production
+          VITE_WS_ENABLED: false
+          VITE_TRANSIT_ENABLED: true
         run: npm run build
 
   security-scan:
