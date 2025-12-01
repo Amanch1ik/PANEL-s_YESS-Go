@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚀 YessBackend - Complete Loyalty Platform
 
 <div align="center">
@@ -440,4 +441,6 @@ Jwt__Audience=yess-loyalty
 ⭐ Если проект был полезен, поставьте звезду!
 
 </div>
+=======
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
 

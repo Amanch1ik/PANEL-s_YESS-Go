@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # .NET
 bin/
 obj/
@@ -11,6 +12,34 @@ project.fragment.lock.json
 artifacts/
 *.exe
 *.log
+=======
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+.venv
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
 
 # Node
 node_modules/
@@ -18,6 +47,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+<<<<<<< HEAD
 .eslintcache
 .parcel-cache
 dist/
@@ -26,11 +56,26 @@ build/
 
 # IDE
 .vs/
+=======
+.npm
+.eslintcache
+.parcel-cache
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+<<<<<<< HEAD
 *.sln.iml
 
 # Environment
@@ -43,10 +88,19 @@ appsettings.Production.json
 # Logs
 *.log
 logs/
+=======
+.DS_Store
+
+# Build outputs
+dist/
+build/
+*.log
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
 *.pid
 *.seed
 *.pid.lock
 
+<<<<<<< HEAD
 # OS
 Thumbs.db
 .DS_Store
@@ -70,12 +124,15 @@ secrets/
 # Docker
 .dockerignore
 
+=======
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
 # Testing
 coverage/
 .nyc_output/
 .pytest_cache/
 .coverage
 htmlcov/
+<<<<<<< HEAD
 test-results/
 
 # Temporary
@@ -92,6 +149,47 @@ __pycache__/
 venv/
 env/
 .venv/
+=======
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Docker
+.dockerignore
+
+# Kubernetes
+*.kubeconfig
+
+# Mobile (C# / .NET)
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.cache
+project.lock.json
+project.fragment.lock.json
+artifacts/
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
 
 # MAUI
 *.appx
@@ -100,3 +198,28 @@ env/
 *.apk
 *.aab
 
+<<<<<<< HEAD
+=======
+# Uploads
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
+!screenshots/
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.backup
+*.old
+
+# Local configuration
+local_settings.py
+local_config.json
+>>>>>>> fbeca546db7463a04490b22dcaacce1d07a7fa06
