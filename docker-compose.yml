@@ -61,6 +61,50 @@ services:
     volumes:
       - yess_uploads:/app/uploads
 
+  admin-panel:
+    build:
+      context: ./panels-ts-v2
+      dockerfile: admin-panel/Dockerfile
+    container_name: yess-admin-panel
+    restart: unless-stopped
+    ports:
+      - "8083:80"
+    depends_on:
+      csharp-backend:
+        condition: service_started
+    networks:
+      - yess-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    environment:
+      - NODE_ENV=production
+
+  partner-panel:
+    build:
+      context: ./panels-ts-v2
+      dockerfile: partner-panel/Dockerfile
+    container_name: yess-partner-panel
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      csharp-backend:
+        condition: service_started
+    networks:
+      - yess-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    environment:
+      - NODE_ENV=production
+
 volumes:
   yess_pg_data:
   yess_uploads:

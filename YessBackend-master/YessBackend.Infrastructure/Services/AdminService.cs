@@ -31,20 +31,110 @@ public class AdminService : IAdminService
     public async Task<DashboardStatsDto> GetDashboardStatsAsync()
     {
         var now = DateTime.UtcNow;
-        var today = now.Date;
-        var weekStart = today.AddDays(-(int)today.DayOfWeek);
-        var monthStart = new DateTime(now.Year, now.Month, 1);
-        var lastMonthStart = monthStart.AddMonths(-1);
-        var thirtyDaysAgo = now.AddDays(-30);
+        var today = DateTime.SpecifyKind(now.Date, DateTimeKind.Utc);
+        var weekStart = DateTime.SpecifyKind(today.AddDays(-(int)today.DayOfWeek), DateTimeKind.Utc);
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var lastMonthStart = DateTime.SpecifyKind(monthStart.AddMonths(-1), DateTimeKind.Utc);
+        var thirtyDaysAgo = DateTime.SpecifyKind(now.AddDays(-30), DateTimeKind.Utc);
+
+        // Получаем активных пользователей - фильтруем по статусу на стороне БД,
+        // а фильтрацию по периоду делаем в памяти, чтобы избежать проблем с DateTimeKind
+        var allUsersForActive = await _context.Users
+            .Where(u => u.IsActive && u.LastLoginAt.HasValue)
+            .Select(u => new { u.Id, LastLoginAt = u.LastLoginAt!.Value })
+            .ToListAsync();
+        
+        var activeUsersCount = allUsersForActive.Count(u =>
+        {
+            var loginDate = u.LastLoginAt.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(u.LastLoginAt, DateTimeKind.Utc)
+                : u.LastLoginAt.ToUniversalTime();
+            return loginDate >= thirtyDaysAgo;
+        });
+
+        // Получаем пользователей с нормализацией DateTime для подсчета по периодам
+        var allUsers = await _context.Users
+            .Select(u => new { u.Id, CreatedAt = u.CreatedAt })
+            .ToListAsync();
+        
+        var newUsersToday = allUsers.Count(u =>
+        {
+            var createdAt = u.CreatedAt.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(u.CreatedAt, DateTimeKind.Utc)
+                : u.CreatedAt.ToUniversalTime();
+            return createdAt >= today;
+        });
+        
+        var newUsersThisWeek = allUsers.Count(u =>
+        {
+            var createdAt = u.CreatedAt.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(u.CreatedAt, DateTimeKind.Utc)
+                : u.CreatedAt.ToUniversalTime();
+            return createdAt >= weekStart;
+        });
+        
+        var newUsersThisMonth = allUsers.Count(u =>
+        {
+            var createdAt = u.CreatedAt.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(u.CreatedAt, DateTimeKind.Utc)
+                : u.CreatedAt.ToUniversalTime();
+            return createdAt >= monthStart;
+        });
+
+        // Получаем транзакции с нормализацией DateTime - фильтруем по статусу в БД,
+        // а временные границы считаем в памяти
+        var allTransactions = await _context.Transactions
+            .Where(t => t.Status == "completed")
+            .Select(t => new { t.Amount, CreatedAt = t.CreatedAt })
+            .ToListAsync();
+        
+        var revenueToday = allTransactions
+            .Where(t =>
+            {
+                var createdAt = t.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(t.CreatedAt, DateTimeKind.Utc)
+                    : t.CreatedAt.ToUniversalTime();
+                return createdAt >= today;
+            })
+            .Sum(t => t.Amount);
+        
+        var revenueThisWeek = allTransactions
+            .Where(t =>
+            {
+                var createdAt = t.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(t.CreatedAt, DateTimeKind.Utc)
+                    : t.CreatedAt.ToUniversalTime();
+                return createdAt >= weekStart;
+            })
+            .Sum(t => t.Amount);
+        
+        var revenueThisMonth = allTransactions
+            .Where(t =>
+            {
+                var createdAt = t.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(t.CreatedAt, DateTimeKind.Utc)
+                    : t.CreatedAt.ToUniversalTime();
+                return createdAt >= monthStart;
+            })
+            .Sum(t => t.Amount);
+        
+        var lastMonthRevenue = allTransactions
+            .Where(t =>
+            {
+                var createdAt = t.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(t.CreatedAt, DateTimeKind.Utc)
+                    : t.CreatedAt.ToUniversalTime();
+                return createdAt >= lastMonthStart && createdAt < monthStart;
+            })
+            .Sum(t => t.Amount);
 
         var stats = new DashboardStatsDto
         {
             TotalUsers = await _context.Users.CountAsync(),
-            ActiveUsers = await _context.Users.CountAsync(u => 
-                u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thirtyDaysAgo),
-            NewUsersToday = await _context.Users.CountAsync(u => u.CreatedAt >= today),
-            NewUsersThisWeek = await _context.Users.CountAsync(u => u.CreatedAt >= weekStart),
-            NewUsersThisMonth = await _context.Users.CountAsync(u => u.CreatedAt >= monthStart),
+            ActiveUsers = activeUsersCount,
+            NewUsersToday = newUsersToday,
+            NewUsersThisWeek = newUsersThisWeek,
+            NewUsersThisMonth = newUsersThisMonth,
             
             TotalPartners = await _context.Partners.CountAsync(),
             ActivePartners = await _context.Partners.CountAsync(p => p.IsActive),
@@ -55,24 +145,11 @@ public class AdminService : IAdminService
             PendingOrders = await _context.Orders.CountAsync(o => o.Status == OrderStatus.Pending),
             CompletedOrders = await _context.Orders.CountAsync(o => o.Status == OrderStatus.Completed),
             
-            TotalRevenue = await _context.Transactions
-                .Where(t => t.Status == "completed")
-                .SumAsync(t => (decimal?)t.Amount) ?? 0,
-            RevenueToday = await _context.Transactions
-                .Where(t => t.Status == "completed" && t.CreatedAt >= today)
-                .SumAsync(t => (decimal?)t.Amount) ?? 0,
-            RevenueThisWeek = await _context.Transactions
-                .Where(t => t.Status == "completed" && t.CreatedAt >= weekStart)
-                .SumAsync(t => (decimal?)t.Amount) ?? 0,
-            RevenueThisMonth = await _context.Transactions
-                .Where(t => t.Status == "completed" && t.CreatedAt >= monthStart)
-                .SumAsync(t => (decimal?)t.Amount) ?? 0,
+            TotalRevenue = allTransactions.Sum(t => t.Amount),
+            RevenueToday = revenueToday,
+            RevenueThisWeek = revenueThisWeek,
+            RevenueThisMonth = revenueThisMonth,
         };
-
-        // Рассчитываем рост выручки
-        var lastMonthRevenue = await _context.Transactions
-            .Where(t => t.Status == "completed" && t.CreatedAt >= lastMonthStart && t.CreatedAt < monthStart)
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
         
         if (lastMonthRevenue > 0)
         {
@@ -84,18 +161,29 @@ public class AdminService : IAdminService
 
     public async Task<DashboardChartsDto> GetDashboardChartsAsync(int days = 30)
     {
-        var endDate = DateTime.UtcNow.Date.AddDays(1);
-        var startDate = endDate.AddDays(-days);
+        var endDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(1), DateTimeKind.Utc);
+        var startDate = DateTime.SpecifyKind(endDate.AddDays(-days), DateTimeKind.Utc);
 
         var charts = new DashboardChartsDto();
 
-        // Revenue chart
-        var revenueData = await _context.Transactions
-            .Where(t => t.Status == "completed" && t.CreatedAt >= startDate && t.CreatedAt < endDate)
-            .GroupBy(t => t.CreatedAt.Date)
+        // Revenue chart - загружаем все успешные транзакции и фильтруем по датам в памяти
+        var allTransactionsForChart = await _context.Transactions
+            .Where(t => t.Status == "completed")
+            .Select(t => new { t.Amount, CreatedAt = t.CreatedAt })
+            .ToListAsync();
+        
+        var revenueData = allTransactionsForChart
+            .Where(t =>
+            {
+                var createdAt = t.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(t.CreatedAt, DateTimeKind.Utc)
+                    : t.CreatedAt.ToUniversalTime();
+                return createdAt >= startDate && createdAt < endDate;
+            })
+            .GroupBy(t => DateTime.SpecifyKind(t.CreatedAt.Date, DateTimeKind.Utc))
             .Select(g => new { Date = g.Key, Value = g.Sum(t => t.Amount) })
             .OrderBy(x => x.Date)
-            .ToListAsync();
+            .ToList();
 
         charts.RevenueChart = revenueData.Select(x => new ChartDataPointDto
         {
@@ -103,13 +191,23 @@ public class AdminService : IAdminService
             Value = x.Value
         }).ToList();
 
-        // Users chart
-        var usersData = await _context.Users
-            .Where(u => u.CreatedAt >= startDate && u.CreatedAt < endDate)
-            .GroupBy(u => u.CreatedAt.Date)
+        // Users chart - загружаем всех пользователей и фильтруем по датам в памяти
+        var allUsers = await _context.Users
+            .Select(u => new { CreatedAt = u.CreatedAt })
+            .ToListAsync();
+        
+        var usersData = allUsers
+            .Where(u =>
+            {
+                var createdAt = u.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(u.CreatedAt, DateTimeKind.Utc)
+                    : u.CreatedAt.ToUniversalTime();
+                return createdAt >= startDate && createdAt < endDate;
+            })
+            .GroupBy(u => DateTime.SpecifyKind(u.CreatedAt.Date, DateTimeKind.Utc))
             .Select(g => new { Date = g.Key, Value = g.Count() })
             .OrderBy(x => x.Date)
-            .ToListAsync();
+            .ToList();
 
         charts.UsersChart = usersData.Select(x => new ChartDataPointDto
         {
@@ -117,13 +215,23 @@ public class AdminService : IAdminService
             Value = x.Value
         }).ToList();
 
-        // Orders chart
-        var ordersData = await _context.Orders
-            .Where(o => o.CreatedAt >= startDate && o.CreatedAt < endDate)
-            .GroupBy(o => o.CreatedAt.Date)
+        // Orders chart - загружаем все заказы и фильтруем по датам в памяти
+        var allOrders = await _context.Orders
+            .Select(o => new { CreatedAt = o.CreatedAt })
+            .ToListAsync();
+        
+        var ordersData = allOrders
+            .Where(o =>
+            {
+                var createdAt = o.CreatedAt.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(o.CreatedAt, DateTimeKind.Utc)
+                    : o.CreatedAt.ToUniversalTime();
+                return createdAt >= startDate && createdAt < endDate;
+            })
+            .GroupBy(o => DateTime.SpecifyKind(o.CreatedAt.Date, DateTimeKind.Utc))
             .Select(g => new { Date = g.Key, Value = g.Count() })
             .OrderBy(x => x.Date)
-            .ToListAsync();
+            .ToList();
 
         charts.OrdersChart = ordersData.Select(x => new ChartDataPointDto
         {
@@ -168,10 +276,16 @@ public class AdminService : IAdminService
         var query = _context.Transactions.AsQueryable();
 
         if (startDate.HasValue)
-            query = query.Where(t => t.CreatedAt >= startDate.Value);
+        {
+            var start = DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc);
+            query = query.Where(t => t.CreatedAt >= start);
+        }
 
         if (endDate.HasValue)
-            query = query.Where(t => t.CreatedAt <= endDate.Value);
+        {
+            var end = DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc);
+            query = query.Where(t => t.CreatedAt <= end);
+        }
 
         var stats = new TransactionStatsDto
         {
@@ -230,10 +344,16 @@ public class AdminService : IAdminService
             query = query.Where(u => u.UserRoles.Any(ur => ur.Role.Name == filter.Role));
 
         if (filter.CreatedFrom.HasValue)
-            query = query.Where(u => u.CreatedAt >= filter.CreatedFrom.Value);
+        {
+            var from = DateTime.SpecifyKind(filter.CreatedFrom.Value, DateTimeKind.Utc);
+            query = query.Where(u => u.CreatedAt >= from);
+        }
 
         if (filter.CreatedTo.HasValue)
-            query = query.Where(u => u.CreatedAt <= filter.CreatedTo.Value);
+        {
+            var to = DateTime.SpecifyKind(filter.CreatedTo.Value, DateTimeKind.Utc);
+            query = query.Where(u => u.CreatedAt <= to);
+        }
 
         // Сортировка
         query = filter.SortBy.ToLower() switch
@@ -479,10 +599,16 @@ public class AdminService : IAdminService
                 : query.Where(p => p.OwnerId == null);
 
         if (filter.CreatedFrom.HasValue)
-            query = query.Where(p => p.CreatedAt >= filter.CreatedFrom.Value);
+        {
+            var from = DateTime.SpecifyKind(filter.CreatedFrom.Value, DateTimeKind.Utc);
+            query = query.Where(p => p.CreatedAt >= from);
+        }
 
         if (filter.CreatedTo.HasValue)
-            query = query.Where(p => p.CreatedAt <= filter.CreatedTo.Value);
+        {
+            var to = DateTime.SpecifyKind(filter.CreatedTo.Value, DateTimeKind.Utc);
+            query = query.Where(p => p.CreatedAt <= to);
+        }
 
         // Сортировка
         query = filter.SortBy.ToLower() switch
@@ -678,10 +804,16 @@ public class AdminService : IAdminService
             query = query.Where(t => t.Amount <= filter.MaxAmount.Value);
 
         if (filter.CreatedFrom.HasValue)
-            query = query.Where(t => t.CreatedAt >= filter.CreatedFrom.Value);
+        {
+            var from = DateTime.SpecifyKind(filter.CreatedFrom.Value, DateTimeKind.Utc);
+            query = query.Where(t => t.CreatedAt >= from);
+        }
 
         if (filter.CreatedTo.HasValue)
-            query = query.Where(t => t.CreatedAt <= filter.CreatedTo.Value);
+        {
+            var to = DateTime.SpecifyKind(filter.CreatedTo.Value, DateTimeKind.Utc);
+            query = query.Where(t => t.CreatedAt <= to);
+        }
 
         // Сортировка
         query = filter.SortBy.ToLower() switch
@@ -798,10 +930,16 @@ public class AdminService : IAdminService
             query = query.Where(o => o.FinalAmount <= filter.MaxAmount.Value);
 
         if (filter.CreatedFrom.HasValue)
-            query = query.Where(o => o.CreatedAt >= filter.CreatedFrom.Value);
+        {
+            var from = DateTime.SpecifyKind(filter.CreatedFrom.Value, DateTimeKind.Utc);
+            query = query.Where(o => o.CreatedAt >= from);
+        }
 
         if (filter.CreatedTo.HasValue)
-            query = query.Where(o => o.CreatedAt <= filter.CreatedTo.Value);
+        {
+            var to = DateTime.SpecifyKind(filter.CreatedTo.Value, DateTimeKind.Utc);
+            query = query.Where(o => o.CreatedAt <= to);
+        }
 
         // Сортировка
         query = filter.SortBy.ToLower() switch

@@ -14,6 +14,11 @@ using YessBackend.Api.Middleware;
 using YessBackend.Domain.Entities;
 using System.Text.Json.Serialization;
 
+// Глобальные настройки для работы с DateTime в Npgsql:
+// Разрешаем старое поведение с Kind=Unspecified, чтобы не падать на timestamp with time zone
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Настройка Kestrel (использует переменную окружения ASPNETCORE_URLS или настройки из appsettings.json)
