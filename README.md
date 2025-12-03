@@ -1,8 +1,6 @@
 <<<<<<< HEAD
 # 🚀 YessBackend - Complete Loyalty Platform
-
 <div align="center">
-
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis)](https://redis.io/)
@@ -12,13 +10,11 @@
 **Полнофункциональная платформа лояльности с современным стеком технологий**
 
 [Features](#-возможности) • [Quick Start](#-быстрый-старт) • [Documentation](#-документация) • [API](#-api-документация)
-
 </div>
 
 ---
 
 ## 📋 Содержание
-
 - [О проекте](#-о-проекте)
 - [Возможности](#-возможности)
 - [Архитектура](#-архитектура)
@@ -43,7 +39,6 @@
 - ⚡ **Redis** - Быстрое кэширование и сессии
 
 ## ✨ Возможности
-
 ### 🔐 Backend (C# .NET 10.0)
 
 - ✅ **RESTful API** с полной документацией Swagger/OpenAPI
