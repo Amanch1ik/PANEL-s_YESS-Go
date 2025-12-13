@@ -20,12 +20,12 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       proxy: {
         '/api': {
-          target: 'http://localhost:8001',  // Docker Backend на порту 8001
+          target: 'http://localhost:8000',  // C# Backend на порту 8000
           changeOrigin: true,
           secure: false,
         },
         '/api/v1/ws': {
-          target: 'http://localhost:8001',  // Docker Backend на порту 8001
+          target: 'ws://localhost:8000',  // C# Backend WebSocket
           changeOrigin: true,
           ws: true,
         },
