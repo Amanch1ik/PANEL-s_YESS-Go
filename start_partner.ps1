@@ -3,7 +3,7 @@
 
 Write-Host "🤝 Запуск Partner Panel..." -ForegroundColor Cyan
 
-$partnerPanelPath = "Yess-Money---app-master\partner-panel"
+$partnerPanelPath = "panels-ts-v2\partner-panel"
 
 if (-not (Test-Path $partnerPanelPath)) {
     Write-Host "✗ Путь к партнер-панели не найден: $partnerPanelPath" -ForegroundColor Red
@@ -20,7 +20,7 @@ if (-not (Test-Path "node_modules")) {
 
 # Запуск
 Write-Host ""
-Write-Host "🚀 Запуск на http://localhost:3002" -ForegroundColor Green
+Write-Host "🚀 Запуск на http://localhost:3004" -ForegroundColor Green
 Write-Host ""
 Write-Host "Нажмите Ctrl+C для остановки" -ForegroundColor Yellow
 Write-Host ""

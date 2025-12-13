@@ -95,8 +95,9 @@ services:
       dockerfile: admin-panel/Dockerfile
     container_name: yess-admin-panel-prod
     restart: always
-    ports:
-      - "0.0.0.0:8083:80"
+    # Порты НЕ публикуются наружу, доступ только через nginx
+    # ports:
+    #   - "0.0.0.0:8083:80"
     depends_on:
       csharp-backend:
         condition: service_started
@@ -122,8 +123,9 @@ services:
       dockerfile: partner-panel/Dockerfile
     container_name: yess-partner-panel-prod
     restart: always
-    ports:
-      - "0.0.0.0:8081:80"
+    # Порты НЕ публикуются наружу, доступ только через nginx
+    # ports:
+    #   - "0.0.0.0:8081:80"
     depends_on:
       csharp-backend:
         condition: service_started

@@ -26,9 +26,9 @@ echo "✓ Node.js $(node --version)"
 echo ""
 
 # Пути к проектам
-BACKEND_PATH="Yess-Money---app-master/yess-backend"
-ADMIN_PANEL_PATH="Yess-Money---app-master/admin-panel"
-PARTNER_PANEL_PATH="Yess-Money---app-master/partner-panel"
+BACKEND_PATH="yess-backend"
+ADMIN_PANEL_PATH="panels-ts-v2/admin-panel"
+PARTNER_PANEL_PATH="panels-ts-v2/partner-panel"
 
 # Функция для запуска бэкенда
 start_backend() {
@@ -84,7 +84,7 @@ start_admin_panel() {
     fi
     
     # Запуск в фоне
-    echo "  Запуск на http://localhost:3001..."
+    echo "  Запуск на http://localhost:3003..."
     npm run dev > /tmp/admin.log 2>&1 &
     ADMIN_PID=$!
     echo $ADMIN_PID > /tmp/admin.pid
@@ -111,7 +111,7 @@ start_partner_panel() {
     fi
     
     # Запуск в фоне
-    echo "  Запуск на http://localhost:3002..."
+    echo "  Запуск на http://localhost:3004..."
     npm run dev > /tmp/partner.log 2>&1 &
     PARTNER_PID=$!
     echo $PARTNER_PID > /tmp/partner.pid
@@ -159,8 +159,8 @@ echo ""
 echo "📍 Доступные адреса:"
 echo "  • Backend API:     http://localhost:8000"
 echo "  • API Docs:        http://localhost:8000/docs"
-echo "  • Admin Panel:     http://localhost:3001"
-echo "  • Partner Panel:   http://localhost:3002"
+echo "  • Admin Panel:     http://localhost:3003"
+echo "  • Partner Panel:   http://localhost:3004"
 echo ""
 echo "💡 Логи:"
 echo "  • Backend:   tail -f /tmp/backend.log"

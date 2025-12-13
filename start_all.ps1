@@ -29,9 +29,9 @@ try {
 Write-Host ""
 
 # Пути к проектам
-$backendPath = "Yess-Money---app-master\yess-backend"
-$adminPanelPath = "Yess-Money---app-master\admin-panel"
-$partnerPanelPath = "Yess-Money---app-master\partner-panel"
+$backendPath = "yess-backend"
+$adminPanelPath = "panels-ts-v2\admin-panel"
+$partnerPanelPath = "panels-ts-v2\partner-panel"
 
 # Функция для запуска бэкенда
 function Start-Backend {
@@ -85,7 +85,7 @@ function Start-AdminPanel {
     }
     
     # Запуск в новом окне
-    Write-Host "  Запуск на http://localhost:3001..." -ForegroundColor Green
+    Write-Host "  Запуск на http://localhost:3003..." -ForegroundColor Green
     Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; npm run dev"
     
     Set-Location ..\..
@@ -110,7 +110,7 @@ function Start-PartnerPanel {
     }
     
     # Запуск в новом окне
-    Write-Host "  Запуск на http://localhost:3002..." -ForegroundColor Green
+    Write-Host "  Запуск на http://localhost:3004..." -ForegroundColor Green
     Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; npm run dev"
     
     Set-Location ..\..
@@ -141,10 +141,10 @@ if ($backendStarted) {
     Write-Host "  • API Docs:        http://localhost:8000/docs" -ForegroundColor White
 }
 if ($adminStarted) {
-    Write-Host "  • Admin Panel:     http://localhost:3001" -ForegroundColor White
+    Write-Host "  • Admin Panel:     http://localhost:3003" -ForegroundColor White
 }
 if ($partnerStarted) {
-    Write-Host "  • Partner Panel:   http://localhost:3002" -ForegroundColor White
+    Write-Host "  • Partner Panel:   http://localhost:3004" -ForegroundColor White
 }
 Write-Host ""
 Write-Host "💡 Каждый сервис запущен в отдельном окне PowerShell" -ForegroundColor Yellow
