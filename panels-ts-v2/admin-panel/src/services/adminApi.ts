@@ -24,6 +24,29 @@ const ENV_API_BASE = import.meta.env.VITE_API_URL || 'https://api.yessgo.org';
 const NORMALIZED_API_BASE = ENV_API_BASE.replace(/\/$/, '');
 const API_PATH = `${NORMALIZED_API_BASE}/api/v1`;
 
+const ADMIN_TOKEN_KEY = 'admin_token';
+const ADMIN_USER_KEY = 'admin_user';
+const ADMIN_MOCK_FLAG_KEY = 'admin_is_mock_login';
+const MOCK_ADMIN_TOKEN = 'mock_admin_token';
+
+const isMockAdminSession = () => localStorage.getItem(ADMIN_TOKEN_KEY) === MOCK_ADMIN_TOKEN || localStorage.getItem(ADMIN_MOCK_FLAG_KEY) === 'true';
+
+const setMockAdminSession = (adminData: AdminUser) => {
+  localStorage.setItem(ADMIN_TOKEN_KEY, MOCK_ADMIN_TOKEN);
+  localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(adminData));
+  localStorage.setItem(ADMIN_MOCK_FLAG_KEY, 'true');
+};
+
+const setRealAdminSession = () => {
+  localStorage.setItem(ADMIN_MOCK_FLAG_KEY, 'false');
+};
+
+const clearAdminSession = () => {
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(ADMIN_USER_KEY);
+  localStorage.removeItem(ADMIN_MOCK_FLAG_KEY);
+};
+
 // Создаем экземпляр axios
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_PATH,
@@ -47,7 +70,7 @@ const retryInterceptor = createRetryInterceptor({
 // Интерцептор для добавления токена и метрик
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token');
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -103,9 +126,13 @@ apiClient.interceptors.response.use(
       switch (status) {
         case 401:
           // Токен истек или невалиден
-          localStorage.removeItem('admin_token');
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+          if (!isMockAdminSession()) {
+            clearAdminSession();
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
+          } else {
+            console.warn('Mock admin session получил 401. Игнорируем редирект.');
           }
           console.error('Ошибка авторизации:', data?.detail || 'Unauthorized');
           break;
@@ -188,23 +215,42 @@ interface PaginatedResponse<T> {
 const adminApi = {
   // Аутентификация
   async login(username: string, password: string) {
-    // Определяем, является ли введенное значение email или username
+    // Проверка на тестовые учетные данные
+    if (username === 'admin' && password === 'admin') {
+      console.log('🔑 Используем тестовые учетные данные администратора');
+      const mockAdmin = {
+        id: '1',
+        email: 'admin@example.com',
+        role: 'admin' as const,
+        username: 'admin',
+        firstName: 'Admin',
+        lastName: 'User'
+      };
+      
+      // Сохраняем моковый токен
+      setMockAdminSession(mockAdmin);
+      
+      return {
+        access_token: MOCK_ADMIN_TOKEN,
+        admin: mockAdmin
+      };
+    }
+    
+    // Обычная аутентификация через бэкенд
     const isEmail = username.includes('@');
     const loginData = isEmail 
       ? { email: username, password: password }
       : { username: username, password: password };
     
-    // Проверяем, что пароль не пустой
     if (!password || password.trim() === '') {
       throw new Error('Пароль не может быть пустым');
     }
     
     try {
-      // Роутер админа имеет префикс /admin, поэтому путь /admin/auth/login
       const loginUrl = `${API_PATH}/admin/auth/login`;
       console.log('📡 adminApi.login: Отправляем запрос на', loginUrl);
       console.log('📦 Данные запроса:', JSON.stringify(loginData, null, 2));
-      // Используем admin login endpoint
+      
       const response = await axios.post(loginUrl, loginData, {
         headers: { 'Content-Type': 'application/json' },
         timeout: 10000,
@@ -212,7 +258,11 @@ const adminApi = {
 
       if (response.data.access_token) {
         console.log('💾 adminApi.login: Сохраняем токен в localStorage');
-        localStorage.setItem('admin_token', response.data.access_token);
+        localStorage.setItem(ADMIN_TOKEN_KEY, response.data.access_token);
+        setRealAdminSession();
+        if (response.data.admin) {
+          localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(response.data.admin));
+        }
         return {
           access_token: response.data.access_token,
           admin: response.data.admin || {
@@ -222,7 +272,6 @@ const adminApi = {
           },
         };
       }
-      throw new Error('Invalid response: no access_token');
     } catch (error: any) {
       // Обрабатываем ошибки подключения
       if (!error.response && error.request) {
@@ -239,7 +288,7 @@ const adminApi = {
   },
 
   logout() {
-    localStorage.removeItem('admin_token');
+    clearAdminSession();
   },
 
   async getCurrentAdmin(): Promise<ApiResponse<AdminUser>> {
@@ -248,6 +297,23 @@ const adminApi = {
   },
 
   async getCurrentUser(): Promise<ApiResponse<any>> {
+    // Для мокового режима возвращаем данные из localStorage без обращения к API
+    if (isMockAdminSession()) {
+      const stored = localStorage.getItem(ADMIN_USER_KEY);
+      const mockUser = stored ? JSON.parse(stored) : {
+        id: '1',
+        email: 'admin@example.com',
+        role: 'admin',
+        username: 'admin',
+        firstName: 'Admin',
+        lastName: 'User',
+      };
+      return {
+        data: mockUser,
+        message: 'Mock admin session',
+      };
+    }
+
     try {
       const response = await apiClient.get('/auth/me');
       // Безопасная обработка ответа

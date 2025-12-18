@@ -322,10 +322,6 @@ export const LoginPage = () => {
                   required: true, 
                   message: 'Введите пароль'
                 },
-                { 
-                  min: 6, 
-                  message: 'Пароль должен содержать минимум 6 символов'
-                },
                 {
                   max: 128,
                   message: 'Пароль не должен превышать 128 символов'

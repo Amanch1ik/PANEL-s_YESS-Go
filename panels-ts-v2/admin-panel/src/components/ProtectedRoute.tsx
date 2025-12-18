@@ -3,6 +3,10 @@ import { Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
 import { useAuth } from '@/hooks/useAuth';
 
+const ADMIN_TOKEN_KEY = 'admin_token';
+const ADMIN_MOCK_FLAG_KEY = 'admin_is_mock_login';
+const MOCK_ADMIN_TOKEN = 'mock_admin_token';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
@@ -11,7 +15,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isLoading } = useAuth();
 
   // Проверяем токен напрямую, чтобы не зависеть от состояния загрузки
-  const token = localStorage.getItem('admin_token');
+  const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  const isMockSession = token === MOCK_ADMIN_TOKEN || localStorage.getItem(ADMIN_MOCK_FLAG_KEY) === 'true';
 
   // Если загрузка длится слишком долго (больше 3 секунд), проверяем токен напрямую
   const [hasTimedOut, setHasTimedOut] = React.useState(false);
@@ -34,7 +39,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   // Если загрузка и не прошло 3 секунды, показываем спиннер
-  if (isLoading && !hasTimedOut) {
+  if (!isMockSession && isLoading && !hasTimedOut) {
     return (
       <div style={{
         display: 'flex',

@@ -1,12 +1,37 @@
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/services/api';
+import type { AdminUser } from '@/types';
 
 // Глобальный флаг для предотвращения множественных запросов
 let globalCheckInProgress = false;
 // Время последней ошибки 500 - блокируем повторные попытки на 30 секунд
 let last500ErrorTime = 0;
 const ERROR_500_BACKOFF = 30 * 1000; // 30 секунд
+
+const ADMIN_TOKEN_KEY = 'admin_token';
+const ADMIN_USER_KEY = 'admin_user';
+const ADMIN_MOCK_FLAG_KEY = 'admin_is_mock_login';
+const MOCK_ADMIN_TOKEN = 'mock_admin_token';
+
+const getStoredAdminUser = (): AdminUser | null => {
+  try {
+    const storedUser = localStorage.getItem(ADMIN_USER_KEY);
+    if (storedUser) {
+      return JSON.parse(storedUser);
+    }
+  } catch (error) {
+    console.warn('⚠️ useAuth: Не удалось прочитать admin_user из localStorage', error);
+  }
+  return null;
+};
+
+const setFallbackMockUser = () => ({
+  id: '1',
+  email: 'admin@example.com',
+  role: 'admin',
+  username: 'admin',
+} as AdminUser);
 
 export const useAuth = () => {
   const { 
@@ -29,11 +54,20 @@ export const useAuth = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
 
       if (!token) {
         setUser(null);
         setLoading(false);
+        return;
+      }
+
+      // Если используем моковую авторизацию (admin/admin), не обращаемся к API
+      if (token === MOCK_ADMIN_TOKEN || localStorage.getItem(ADMIN_MOCK_FLAG_KEY) === 'true') {
+        const userData = getStoredAdminUser() || setFallbackMockUser();
+        setUser(userData);
+        setLoading(false);
+        setChecking(false);
         return;
       }
 
@@ -115,7 +149,7 @@ export const useAuth = () => {
           if (!user) setUser(null);
         } else if (error?.code === 'ERR_NETWORK' || status === 401) {
           console.log('🚫 useAuth: Токен невалиден');
-          localStorage.removeItem('admin_token');
+          localStorage.removeItem(ADMIN_TOKEN_KEY);
           setUser(null);
         } else {
           console.log('⚠️ useAuth: Другая ошибка');
@@ -145,7 +179,7 @@ export const useAuth = () => {
     };
   }, []);
 
-  const tokenExists = !!localStorage.getItem('admin_token');
+  const tokenExists = !!localStorage.getItem(ADMIN_TOKEN_KEY);
   
   return {
     user,
