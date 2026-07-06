@@ -2,7 +2,7 @@
 
 Личный сайт-портфолио fullstack-разработчика. Двуязычный (RU/EN), тёмная и светлая тема, PWA.
 
-**Живой сайт:** https://amanch1ik.github.io/Partfolio_Amanchik/
+**Живой сайт:** https://amanch1ik.github.io/Portfolio_Amanchik/
 
 ## Стек
 

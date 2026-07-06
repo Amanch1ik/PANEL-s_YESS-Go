@@ -382,7 +382,7 @@ function showToast(message, type = 'success') {
  */
 // Repos already featured in Кейсы, meta, or that must never be shown (ADAPTIVA / kinez_project).
 const REPO_BLOCKLIST = [
-    'Partfolio_Amanchik', 'tengri-avia', 'minitask', 'reklama_ai_gen', 'kinez_project',
+    'Portfolio_Amanchik', 'Partfolio_Amanchik', 'tengri-avia', 'minitask', 'reklama_ai_gen', 'kinez_project',
     'KD-app', 'Karakol-deliveryVN', // duplicate Karakol-delivery variants
 ];
 
