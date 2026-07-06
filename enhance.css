@@ -761,3 +761,55 @@ a.case-access-link:hover .case-access-go {
     .tilt-glow { display: none; }
     .hero-canvas { opacity: 0.6; }
 }
+
+/* ===== Свёрнутые второстепенные секции (Навыки + Процесс) ===== */
+.fold-toggle-wrap {
+    text-align: center;
+    padding: clamp(24px, 4vh, 44px) 0;
+}
+
+.fold-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 34px;
+    font-family: inherit;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+
+.fold-toggle:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-2px);
+}
+
+.fold-toggle i {
+    font-size: 0.85em;
+    color: var(--accent);
+    transition: transform 0.3s var(--ease-out-expo);
+}
+
+.fold-toggle.is-open i {
+    transform: rotate(180deg);
+}
+
+.fold-extras.is-collapsed {
+    display: none;
+}
+
+.fold-extras {
+    animation: foldIn 0.4s var(--ease-out-expo);
+}
+
+@keyframes foldIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}

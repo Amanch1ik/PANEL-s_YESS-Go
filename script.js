@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initCustomCursor();
     initProjectModals();
     initContactForm();
-    initGitHubRepos();
     initLottie();
     initPWA();
 });

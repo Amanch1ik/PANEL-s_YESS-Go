@@ -17,6 +17,7 @@
         initHeroVideoPerf();
         initCharReveal();
         initCaseStack();
+        initFoldSections();
         if (reduceMotion) return;
         if (isDesktop) {
             // Particle canvas is now hidden behind the hero hand-video, so we skip it
@@ -24,6 +25,51 @@
             initTilt();
         }
     });
+
+    /* ---------- Свернуть второстепенные секции (Навыки + Процесс) под кнопку ---------- */
+    function initFoldSections() {
+        const exp = document.getElementById('experience');
+        const skills = document.getElementById('skills');
+        if (!exp || !skills) return;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'fold-extras is-collapsed';
+        exp.parentNode.insertBefore(wrap, exp);
+        wrap.appendChild(exp);
+        wrap.appendChild(skills);
+
+        const bar = document.createElement('div');
+        bar.className = 'fold-toggle-wrap';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fold-toggle';
+        btn.setAttribute('aria-expanded', 'false');
+        btn.innerHTML =
+            '<span data-lang-ru="Навыки и процесс работы" data-lang-en="Skills & how I work">Навыки и процесс работы</span>' +
+            '<i class="fas fa-chevron-down"></i>';
+        bar.appendChild(btn);
+        wrap.parentNode.insertBefore(bar, wrap);
+
+        btn.addEventListener('click', () => {
+            const open = wrap.classList.toggle('is-collapsed') === false;
+            btn.classList.toggle('is-open', open);
+            btn.setAttribute('aria-expanded', String(open));
+            const label = btn.querySelector('span');
+            if (open) {
+                label.setAttribute('data-lang-ru', 'Свернуть');
+                label.setAttribute('data-lang-en', 'Collapse');
+                // Секции были скрыты — их reveal-элементы могли не проявиться. Форсим.
+                wrap.querySelectorAll('.js-title, .js-label, .js-step').forEach((el) => el.classList.add('is-in'));
+                wrap.querySelectorAll('.fade-in').forEach((el) => el.classList.add('visible'));
+            } else {
+                label.setAttribute('data-lang-ru', 'Навыки и процесс работы');
+                label.setAttribute('data-lang-en', 'Skills & how I work');
+            }
+            // Переприменяем текущий язык к смене подписи.
+            const ru = document.documentElement.lang !== 'en';
+            label.textContent = label.getAttribute(ru ? 'data-lang-ru' : 'data-lang-en');
+        });
+    }
 
     /* ---------- Char-by-char scroll reveal for the About copy ---------- */
     function initCharReveal() {
