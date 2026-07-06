@@ -509,6 +509,40 @@ body.light-mode .navbar.scrolled {
     transform: translateY(-2px);
 }
 
+/* Компактная ссылка «Скачать резюме» рядом с кнопками hero */
+.hero-resume {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 16px 6px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid transparent;
+    align-self: center;
+    transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.hero-resume i {
+    color: var(--accent);
+    transition: transform 0.25s var(--ease-out-expo);
+}
+
+.hero-resume:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.hero-resume:hover i {
+    transform: translateY(2px);
+}
+
+/* Кнопка резюме в блоке контактов */
+.contact-resume-btn {
+    margin: 4px 0 22px;
+    align-self: flex-start;
+}
+
 .hero-socials {
     display: flex;
     gap: 12px;
