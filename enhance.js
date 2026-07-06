@@ -22,39 +22,8 @@
             // Particle canvas is now hidden behind the hero hand-video, so we skip it
             // to save a continuous requestAnimationFrame loop.
             initTilt();
-            initMagneticPortrait();
         }
     });
-
-    /* ---------- Magnetic hero portrait — the photo eases toward the cursor ---------- */
-    function initMagneticPortrait() {
-        const el = document.querySelector('.hero-image');
-        if (!el) return;
-        const PAD = 160;
-        const STRENGTH = 7;
-        let raf = null;
-        let tx = 0;
-        let ty = 0;
-        const onMove = (e) => {
-            const r = el.getBoundingClientRect();
-            const dx = e.clientX - (r.left + r.width / 2);
-            const dy = e.clientY - (r.top + r.height / 2);
-            const inRange =
-                Math.abs(dx) < r.width / 2 + PAD && Math.abs(dy) < r.height / 2 + PAD;
-            tx = inRange ? dx / STRENGTH : 0;
-            ty = inRange ? dy / STRENGTH : 0;
-            el.style.transition = inRange
-                ? 'transform 0.3s ease-out'
-                : 'transform 0.6s ease-in-out';
-            if (!raf) {
-                raf = requestAnimationFrame(() => {
-                    raf = null;
-                    el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
-                });
-            }
-        };
-        window.addEventListener('mousemove', onMove, { passive: true });
-    }
 
     /* ---------- Char-by-char scroll reveal for the About copy ---------- */
     function initCharReveal() {
